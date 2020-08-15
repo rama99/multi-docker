@@ -1,0 +1,21 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t ramakishore/react-app-test -f ./client/Dockerfile.dev  ./client
+
+script:
+  - docker run -e CI=true ramakishore/react-app-test npm test -- --coverage
+
+after_success:
+  - docker build -t ramakishore/new-client ./client
+  - docker build -t ramakishore/new-nginx ./nginx
+  - docker build -t ramakishore/new-server ./server
+  - docker build -t ramakishore/new-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push ramakishore/new-client
+  - docker push ramakishore/new-nginx
+  - docker push ramakishore/new-server
+  - docker push ramakishore/new-worker
+
